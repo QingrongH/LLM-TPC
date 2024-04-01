@@ -1,6 +1,6 @@
 # LLM-TPC
 Code for paper "Think-Program-reCtify: 3D Situated Reasoning with Large Language Models"
-<img src="images/LLM-TPC.png" width="500"/>
+<img src="images/LLM-TPC.png"/>
 
 ## Install
 ```Shell
@@ -61,6 +61,6 @@ python eval.py --log_dir ../logs/test/no_caption-openshape-gt_seg-gt_label
 
 ## Acknowledgement
 - [Agents](https://github.com/aiwaves-cn/agents): the codebase we built upon.
-- [Mask3D](https://github.com/JonasSchult/Mask3D): we use the ScanNet200 test checkpoint for 3D instance segmentation. Specifically, we apply the same instance segmentations provided by 3D-VisTA(https://github.com/3d-vista/3D-VisTA) which can be found here(https://github.com/3d-vista/3D-VisTA/issues/12).
+- [Mask3D](https://github.com/JonasSchult/Mask3D): we use the ScanNet200 test checkpoint for 3D instance segmentation. Specifically, we apply the same instance segmentations provided by [3D-VisTA](https://github.com/3d-vista/3D-VisTA) which can be found [here](https://github.com/3d-vista/3D-VisTA/issues/12).
 - [ReferIt3D](https://github.com/referit3d/referit3d): we design APIs for spacial relation recognition based on ReferIt3D.
 - [OpenShape](https://github.com/Colin97/OpenShape_code): we design APIs for open-vocabulary object attribute classification based on OpenShape.
