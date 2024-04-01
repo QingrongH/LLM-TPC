@@ -45,7 +45,7 @@ Download the [question-answer pairs](https://zenodo.org/record/7792397/files/Sca
 
 ### OpenShape
 We use the [pointbert-vitg14-rgb](https://huggingface.co/OpenShape/openshape-pointbert-vitg14-rgb/tree/main) and [OpenCLIP ViT-bigG-14](https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/tree/main) checkpoint from [OpenShape](https://github.com/Colin97/OpenShape_code).
-Download [`model.pt`] from [here](https://huggingface.co/OpenShape/openshape-pointbert-vitg14-rgb/tree/main) and [`open_clip_pytorch_model.bin`] from [here](https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/tree/main). Put them under `data/openshape`.
+Download `model.pt` from [here](https://huggingface.co/OpenShape/openshape-pointbert-vitg14-rgb/tree/main) and `open_clip_pytorch_model.bin` from [here](https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/tree/main). Put them under `data/openshape`.
 
 ## Inference
 TODO
@@ -71,7 +71,6 @@ python visualize_bbox.py
 
 ## Acknowledgement
 - [Agents](https://github.com/aiwaves-cn/agents): the codebase we built upon.
-- [Mask3D](https://github.com/JonasSchult/Mask3D): we use the ScanNet200 test checkpoint for 3D instance segmentation. Specifically, we apply the same instance segmentations provided by [3D-VisTA](https://github.com/3d-vista/3D-VisTA) which can be found [here](https://github.com/3d-vista/3D-VisTA/issues/12).
 - [ReferIt3D](https://github.com/referit3d/referit3d): we design APIs for spacial relation recognition based on ReferIt3D.
 - [OpenShape](https://github.com/Colin97/OpenShape_code): we design APIs for open-vocabulary object attribute classification based on OpenShape.
 - [ScanRefer](https://github.com/daveredrum/ScanRefer): code for visualization.
