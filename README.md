@@ -18,8 +18,7 @@ data
 │   ├── model.pt
 │   └── open_clip_pytorch_model.bin
 ├── qa
-│   ├── answer_counter.json
-│   └── SQA_balanced_test.json
+│   └── SQA_test.json
 ├── scans
 │   ├── scene0000_00
 │   │   ├── scene0000_00_vh_clean_2.0.010000.segs.json
@@ -42,21 +41,32 @@ python download-scannet.py -o data --type .txt
 ```
 
 ### SQA3D
+Download the [question-answer pairs](https://zenodo.org/record/7792397/files/ScanQA_format.zip) from [SQA3D](https://github.com/SilongYong/SQA3D) and put `SQA_test.json` under `data/qa`.
 
 ### OpenShape
-
+We use the [pointbert-vitg14-rgb](https://huggingface.co/OpenShape/openshape-pointbert-vitg14-rgb/tree/main) and [OpenCLIP ViT-bigG-14](https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/tree/main) checkpoint from [OpenShape](https://github.com/Colin97/OpenShape_code).
+Download [`model.pt`] from [here](https://huggingface.co/OpenShape/openshape-pointbert-vitg14-rgb/tree/main) and [`open_clip_pytorch_model.bin`] from [here](https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/tree/main). Put them under `data/openshape`.
 
 ## Inference
+TODO
 ```Shell
 cd scripts
 # Input your OPENAI_API_KEY in 'no_caption-openshape-gt_seg-gt_label/config.json'
 python example.py --agent no_caption-openshape-gt_seg-gt_label/config.json
 ```
 
-## Evaluate
+## Evaluation
+TODO
 ```Shell
 cd scripts
 python eval.py --log_dir ../logs/test/no_caption-openshape-gt_seg-gt_label
+```
+
+## Visualization
+TODO
+```Shell
+cd src/dataset
+python visualize_bbox.py
 ```
 
 ## Acknowledgement
@@ -64,3 +74,4 @@ python eval.py --log_dir ../logs/test/no_caption-openshape-gt_seg-gt_label
 - [Mask3D](https://github.com/JonasSchult/Mask3D): we use the ScanNet200 test checkpoint for 3D instance segmentation. Specifically, we apply the same instance segmentations provided by [3D-VisTA](https://github.com/3d-vista/3D-VisTA) which can be found [here](https://github.com/3d-vista/3D-VisTA/issues/12).
 - [ReferIt3D](https://github.com/referit3d/referit3d): we design APIs for spacial relation recognition based on ReferIt3D.
 - [OpenShape](https://github.com/Colin97/OpenShape_code): we design APIs for open-vocabulary object attribute classification based on OpenShape.
+- [ScanRefer](https://github.com/daveredrum/ScanRefer): code for visualization.
