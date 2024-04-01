@@ -32,7 +32,7 @@ data
 ```
 
 ### ScanNet
-To acquire the access to ScanNet dataset, please refer to ScanNet(https://github.com/ScanNet/ScanNet) and follow the instructions there. You will get a `download-scannet.py` script after your request for the ScanNet dataset is approved. Use the commands below to download the portion of ScanNet that is necessary for LLM-TPC:
+To acquire the access to ScanNet dataset, please refer to [ScanNet](https://github.com/ScanNet/ScanNet) and follow the instructions there. You will get a `download-scannet.py` script after your request for the ScanNet dataset is approved. Use the commands below to download the portion of ScanNet that is necessary for LLM-TPC:
 ```Shell
 python download-scannet.py -o data --type _vh_clean_2.0.010000.segs.json
 python download-scannet.py -o data --type _vh_clean_2.labels.ply
