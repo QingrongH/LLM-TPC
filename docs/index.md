@@ -40,22 +40,22 @@ Finally, the final answer is formalized through summarizing the execution result
 
 
 ## Qualitative Results
+LLM-TPC can leverage common-sense reasoning to provide knowledge-intensive answers that go beyond the information derived solely from the 3D scene. For example, it can determine whether it can reach the lamp from its current position by considering the typical arm length of a person (as shown in the top-left figure). It can also estimate the size of the bed based on its length and width (as shown in the top-right figure). Furthermore, it can make decisions about which furniture can be used for washing hands (as shown in the bottom figure).
+
 ![Figure 2](/static/images/qualitative_results_1.png)
 *Figure 2: Qualitative results of LLM-TPC.*
 
-LLM-TPC can leverage common-sense reasoning to provide knowledge-intensive answers that go beyond the information derived solely from the 3D scene. For example, it can determine whether it can reach the lamp from its current position by considering the typical arm length of a person (as shown in the top-left figure). It can also estimate the size of the bed based on its length and width (as shown in the top-right figure). Furthermore, it can make decisions about which furniture can be used for washing hands (as shown in the bottom figure).
+When the execution fails, LLM-TPC enters the Rectify module, where the LLM is prompted with a debug command to loop back to the Think phase and adjusts the plan and program according to the received error message (as shown in the top figure). Additionally, we can detect the capabilities of APIs and foundational visual models by observing the intermediate output of program execution (as shown in the bottom figure).
 
 ![Figure 3](/static/images/qualitative_results_2.png)
 *Figure 3: Qualitative results of LLM-TPC.*
-
-When the execution fails, LLM-TPC enters the Rectify module, where the LLM is prompted with a debug command to loop back to the Think phase and adjusts the plan and program according to the received error message (as shown in the top figure). Additionally, we can detect the capabilities of APIs and foundational visual models by observing the intermediate output of program execution (as shown in the bottom figure).
 
 
 ## Citation
 ```
 @article{qingrong2024llm-tpc,
   title={Think-Program-reCtify: 3D Situated Reasoning with Large Language Models},
-  author={Qingrong, He and Kejun, Lin and Shizhe, Chen and Anwen, Hu and Qin, Jin},
+  author={Qingrong He and Kejun Lin and Shizhe Chen and Anwen Hu and Qin Jin},
   year={2024}
 }
 ```

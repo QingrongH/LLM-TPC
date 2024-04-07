@@ -1,6 +1,7 @@
 # LLM-TPC
-Code for paper "Think-Program-reCtify: 3D Situated Reasoning with Large Language Models"
-<img src="images/LLM-TPC.png"/>
+Code for the paper "Think-Program-reCtify: 3D Situated Reasoning with Large Language Models"
+[[Project Page](https://qingrongh.github.io/LLM-TPC/)] [[Paper](https://github.com/QingrongH/LLM-TPC)]
+<img src="docs/static/images/LLM-TPC.png"/>
 
 ## Install
 ```Shell
