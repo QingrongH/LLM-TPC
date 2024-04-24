@@ -155,3 +155,51 @@ body {
 #interpolation-image-wrapper img {
   border-radius: 5px;
 }
+
+#situation {
+  color: darkgreen;
+}
+
+#question {
+  color: black;
+}
+
+#think1 {
+  color: black;
+  background-color: #DAE8FC;
+}
+
+#program1 {
+  color: black;
+  background-color: #F5F5F5;
+}
+
+#execution1 {
+  color: black;
+  background-color: #E1D5E7;
+}
+
+#rectify1 {
+  color: black;
+  background-color: #FFE6CC;
+}
+
+#think2 {
+  color: black;
+  background-color: #DAE8FC;
+}
+
+#program2 {
+  color: black;
+  background-color: #F5F5F5;
+}
+
+#execution2 {
+  color: black;
+  background-color: #E1D5E7;
+}
+
+#summarization {
+  color: black;
+  background-color: #D5E8D4;
+}

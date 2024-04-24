@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Think-Program-reCtify: 3D Situated Reasoning with Large Language Models">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM-TPC</title>
+
+  <script>
+    // functions borrowed from PaLM-E
+    timeoutIds = [];
+        
+    function populateDemo(img) {
+      console.log("img", img)
+
+      var img1 = document.getElementById("scene1");
+      img1.onclick = null;
+
+      var img2 = document.getElementById("scene2");
+      img2.onclick = null;
+
+      var img3 = document.getElementById("scene3");
+      img3.onclick = null;
+
+      var img4 = document.getElementById("scene4");
+      img4.onclick = null;
+
+      var img5 = document.getElementById("scene5");
+      img5.onclick = null;
+
+      var img6 = document.getElementById("scene6");
+      img6.onclick = null;
+
+      for (const idx of [1,2]) {
+        var think = document.getElementById("think"+idx);
+        var program = document.getElementById("program"+idx);
+        var execution= document.getElementById("execution"+idx);
+        var rectify= document.getElementById("rectify"+idx);
+        think.innerHTML = "";
+        program.innerHTML = "";
+        execution.innerHTML = "";
+        if (idx < 2){
+          rectify.innerHTML = "";
+        } 
+      }
+
+      var situation = document.getElementById("situation");
+      var question = document.getElementById("question");
+      var summarization  = document.getElementById("summarization");
+      situation.innerHTML = "";
+      question.innerHTML = "";
+      summarization.innerHTML = "";
+
+      model1 = scene1.getObjectByName("mesh")
+      scene1.remove(model1)
+      document.querySelector('#pose_loading').innerHTML = `<img src="assets/loading.svg" width="48" height="48">`
+
+      var capability = document.querySelector('input[name="capability"]:checked').value;
+      let assetUrl = new URL('./assets/scene_mesh/' + capability + img.id[5] + '.glb', document.URL)
+      assetLoader1.load(assetUrl.href, gltf => {
+        model1 = gltf.scene
+        model1.name = "mesh"
+        scene1.add(model1)
+        document.querySelector('#pose_loading').innerHTML = ''
+
+        img1.onclick = function() {populateDemo(img1)};
+        img2.onclick = function() {populateDemo(img2)};
+        img3.onclick = function() {populateDemo(img3)};
+        img4.onclick = function() {populateDemo(img4)};
+        img5.onclick = function() {populateDemo(img5)};
+        img6.onclick = function() {populateDemo(img6)};
+
+        var situation_txt = img.getAttribute('situation');
+        var question_txt = img.getAttribute('question');
+
+        for (timeoutId of timeoutIds) {
+            clearTimeout(timeoutId);
+        }
+
+        var delay = 0;
+        timeoutIds.push(setTimeout(displaySituationQuestion, delay, situation_txt, question_txt));
+
+        for (const idx of [1,2]) {
+          var think_txt = img.getAttribute('think'+idx);
+          timeoutIds.push(setTimeout(displayTPC, delay, think_txt, "think"+idx));
+          delay += think_txt.length * 25
+
+          var program_txt = img.getAttribute('program'+idx);
+          timeoutIds.push(setTimeout(displayTPC, delay, program_txt, "program"+idx));
+          delay += program_txt.length * 25;
+
+          var execution_txt = img.getAttribute('execution'+idx);
+          timeoutIds.push(setTimeout(displayTPC, delay, execution_txt, "execution"+idx));
+          delay += execution_txt.length * 25;
+
+          if (idx < 2){
+            var rectify_txt = img.getAttribute('rectify'+idx);
+            timeoutIds.push(setTimeout(displayTPC, delay, rectify_txt, "rectify"+idx));
+            delay += rectify_txt.length * 25;
+          }
+        }
+        
+        var summarization_txt = img.getAttribute('summarization');
+        timeoutIds.push(setTimeout(displayTPC, delay, summarization_txt, "summarization"));
+        delay += summarization_txt.length * 25;
+        
+      }, undefined, (error) => {console.error(error)})
+    }
+
+    function typeWriterTPC(txt, i, stage_type) {
+      if (i < txt.length) {
+        document.getElementById(stage_type).innerHTML += txt.charAt(i);
+        i++;
+        timeoutIds.push(setTimeout(typeWriterTPC, 20, txt, i, stage_type));
+      }
+    }
+    
+    function displaySituationQuestion(situation_txt, question_txt) {
+      var situation = document.getElementById("situation");
+      var question = document.getElementById("question");
+      situation.innerHTML = situation_txt;
+      question.innerHTML = question_txt;
+    }
+
+    function displayTPC(txt, stage_type) {
+      var stage = document.getElementById(stage_type);
+      stage.innerHTML = "";
+      typeWriterTPC(txt, 0, stage_type);
+    }
+
+  </script>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js",
+        "three": "https://unpkg.com/three@0.127.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.127.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <!-- imported in PaLM-E -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.css">
+  <link rel="stylesheet" href="https://github.com/palm-e/palm-e.github.io/blob/main/css/app.css">
+
+  <link rel="stylesheet" href="https://github.com/palm-e/palm-e.github.io/blob/main/css/bootstrap.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.3/clipboard.min.js"></script>
+  
+  <script src="https://github.com/palm-e/palm-e.github.io/blob/main/js/app.js"></script>
+
+  <!-- imported in Nerfies -->
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="https://kit.fontawesome.com/69dc91e44b.js" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">Think-Program-reCtify: 3D Situated Reasoning with Large Language Models</h1>
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">Qingrong He<sup>1</sup>,</span>
+              <span class="author-block">Kejun Lin<sup>1</sup>,</span>
+              <span class="author-block">Shizhe Chen<sup>2</sup>,</span>
+              <span class="author-block">Anwen Hu<sup>3</sup>,</span>
+              <span class="author-block">Qin Jin<sup>1</sup></span>
+            </div>
+  
+            <div class="is-size-5 publication-authors">
+              <span class="author-block"><sup>1</sup>Renmin University of China  </span>
+              <span class="author-block"><sup>2</sup>INRIA  </span>
+              <span class="author-block"><sup>3</sup>Alibaba Group</span>
+            </div>
+
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <!-- Arxiv Link. -->
+                <span class="link-block">
+                  <a target="_blank" href="https://arxiv.org/abs/2404.14705"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                        <i class="ai ai-arxiv"></i>
+                    </span>
+                    <span>arXiv</span>
+                  </a>
+                </span>
+                <!-- Code Link. -->
+                <span class="link-block">
+                  <a target="_blank" href="https://github.com/QingrongH/LLM-TPC"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                        <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code</span>
+                    </a>
+                </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            This work addresses the 3D situated reasoning task which aims to answer questions given egocentric observations in a 3D environment.
+            The task remains challenging as it requires comprehensive 3D perception and complex reasoning skills. End-to-end models trained on supervised data for 3D situated reasoning suffer from data scarcity and generalization ability.
+            Inspired by the recent success of leveraging large language models (LLMs) for visual reasoning, we propose LLM-TPC, a novel framework that leverages the planning, tool usage, and reflection capabilities of LLMs through a <strong>T</strong>hink-<strong>P</strong>rogram-re<strong>C</strong>tify loop.  
+            The <strong>Think</strong> phase first decomposes the compositional question into a sequence of steps, and then the <strong>Program</strong> phase grounds each step to a piece of code and calls carefully designed 3D visual perception modules.
+            Finally, the <strong>Rectify</strong> phase adjusts the plan and code if the program fails to execute. 
+            Experiments and analysis on the SQA3D benchmark demonstrate the effectiveness, interpretability and robustness of our method.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Overall Framework -->
+    <!-- <div class="has-text-centered" style="padding: 0 1em;"> -->
+    <div class="column is-full-width" id="framework">
+        <h2 class="title is-3">Overall Framework</h2>
+        <br/>
+        <img src="./assets/LLM-TPC.png"/>
+        <p style="text-align: justify; font-size: 0.8em;">
+          Overall Framework of <b>LLM-TPC</b>. <b>LLM-TPC</b> comprises three key components: the <span style="color: #9F47B3;">3D Visual Perception Module</span> equips the LLM with 3D context perception abilities, the <span style="color: #9F47B3;">Prompt Preparation Stage</span> prepares prompts for reasoning, and the <span style="color: #9F47B3;">Reasoning Stage</span> involves iterative <span style="background-color: #DAE8FC;">Think</span>-<span style="background-color: #F5F5F5;">Program</span>-<span style="background-color: #FFE6CC;">reCtify</span> loops.
+    </div>
+    <p>LLM-TPC contains a <b>T</b>hink-<b>P</b>rogram-re<b>C</b>tify loop to iteratively enhance the question answering performance.
+    In the <em>Think</em> phase, an LLM is prompted to decompose the question into a series of steps in natural language, taking advantage of LLM's world knowledge.
+    It then generates an executable Python program in the following <em>Program</em> phase guided by the steps in the Think phase. The program calls a set of 3D visual perception modules to query necessary information needed to solve the target question.
+    Next, in the <em>Rectify</em> phase, the program is executed and corrected if it fails or reaches a maximum number of iterations.
+    Finally, the final answer is formalized through summarizing the execution results. 
+    <br/><br/><br/>
+
+    <!-- Demo -->
+    <div class="columns is-centered">
+      <div class="column is-full-width" id="demo">
+        <h2 class="title is-3">Demo</h2>
+        <br/>
+        <div class="columns is-centered" style="position: relative;">
+          <div class="control" style="display: flex; flex-direction: row; align-items: center; justify-content: center;">
+            <label class="radio">
+              <input value="scene" type="radio" name="capability"> <b>LLM-TPC</b>
+            </label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-2 col-sm-2 col-xs-4">
+            <img id="scene1" src="assets/scene_view/scene1.jpg" width="100%"
+              situation = "Situation: I am lying on my bed while watching my favourite evening show."
+              question = "Question: Which direction should I go if I want to &lt;span style=&quot;background-color: #D5E8D4;&quot;&gt;iron my clothes&lt;/span&gt;?"
+              think1 = "Thought: To determine which direction I should go if I want to iron my clothes, I need to find the ironing board and then determine the direction of the ironing board relative to my current position. I will develop a program to accomplish this using the following steps:
+              Step 1. Filter the ironing board from the objects in the scene.
+              Step 2. Determine the direction of the ironing board relative to my current position.
+              Step 3. Decide which direction I should go to reach the ironing board."
+              program1 = '# Get object set in the scene
+              object_set = scene()
+
+              # Filter the ironing board from the objects in the scene
+              ironing_board_set = filter(object_set=object_set, category="ironing board")
+
+              # Determine the direction of the ironing board relative to my current position
+              direction = query_relation_agent(object_set=ironing_board_set)'
+              execution1 = "Observation: TypeError: query_relation_agent() got an unexpected keyword argument 'object_set'"
+              rectify1 = "Program executing error. Check your program. Return your modified program in the format of:
+              Thought: ...
+              Action: Program
+              Action Input:
+              ```
+              YOUR MODIFIED PROGRAM
+              ```"
+              think2 = "Thought: I apologize for the mistake. I will modify the program to use the correct function `query_relation_agent()` to determine the direction of the ironing board."
+              program2 = '# Get object set in the scene
+              object_set = scene()
+
+              # Filter the ironing board from the objects in the scene
+              ironing_board_set = filter(object_set=object_set, category="ironing board")
+
+              # Determine the direction of the ironing board relative to my current position
+              direction = query_relation_agent(object=ironing_board_set.pop())
+              print(f"Direction of the ironing board relative to my current position: {direction}")'
+              execution2 = "Observation: Direction of the ironing board relative to my current position: ['left']"
+              summarization = "Thought: Based on the observation, the ironing board is located to my left. Therefore, I should go left if I want to iron my clothes.
+              Action: Final Answer
+              Action Input: left"
+              onclick="populateDemo(this);">
+          </div>
+          
+          <div class="col-md-2 col-sm-2 col-xs-4">
+            <img id="scene2" src="assets/scene_view/scene2.jpg" width="100%"
+              situation = "Situation: I am pushing the bookshelf with another bookshelf in my ten o'clock direction and the window behind me."
+              question = "Question: What color is my &lt;span style=&quot;background-color: #D5E8D4;&quot;&gt;backpack&lt;/span&gt; on the &lt;span style=&quot;background-color: yellow;&quot;&gt;left desk&lt;/span&gt;?"
+              think1 = "Thought: To determine the color of my backpack on the left desk, I need to find the left desk and then query the color of the backpack on it. I will develop a program to accomplish this using the following steps:
+              Step 1. Filter the desks from the objects in the scene. (Program)
+              Step 2. Find the left desk. (Program)
+              Step 3. Query the color of the backpack on the left desk. (Wait for the execution result before proceeding with further analysis)"
+              program1 = '# Get object set in the scene
+              object_set = scene()
+
+              # Filter the desks from the objects in the scene
+              desk_set = filter(object_set=object_set, category="desk")
+
+              # Find the left desk
+              left_desk_set = relate_agent(object_set=desk_set, relation="left")
+
+              # Query the color of the backpack on the left desk
+              backpack_color = ""
+              for desk in left_desk_set:
+              &nbsp;&nbsp;&nbsp;&nbsp;backpacks_on_desk = relate(object_set=object_set, reference_object=desk, relation="on")
+              &nbsp;&nbsp;&nbsp;&nbsp;for backpack in backpacks_on_desk:
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if backpack.category == "backpack":
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;backpack_color = query_attribute(object=backpack, attribute_type="color")
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break
+              print(f"The color of my backpack on the left desk is: {backpack_color}")'
+              execution1 = "AssertionError: Calling filter(object_set: Set[ObjectAttribute], category: str) -> Set[ObjectAttribute] error! category must be chosen from ['backpack', ...,'table', ..., 'window'], not 'desk'."
+              rectify1 = "Program executing error. Check your program. Return your modified program in the format of:
+              Thought: ...
+              Action: Program
+              Action Input:
+              ```
+              YOUR MODIFIED PROGRAM
+              ```"
+              think2 = 'Thought: I made an error in my program by using the wrong category "desk" instead of "table". I will modify my program to filter the tables instead of the desks and find the left table to determine the color of my backpack on it.'
+              program2 ='# Get object set in the scene
+              object_set = scene()
+
+              # Filter the tables from the objects in the scene
+              table_set = filter(object_set=object_set, category="table")
+
+              # Find the left table
+              left_table_set = relate_agent(object_set=table_set, relation="left")
+              
+              # Query the color of the backpack on the left table
+              backpack_color = ""
+              for table in left_table_set:
+              &nbsp;&nbsp;&nbsp;&nbsp;backpacks_on_table = relate(object_set=object_set, reference_object=table, relation="on")
+              &nbsp;&nbsp;&nbsp;&nbsp;for backpack in backpacks_on_table:
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if backpack.category == "backpack":
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;backpack_color = query_attribute(object=backpack, attribute_type="color")
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break
+              print(f"The color of my backpack on the left table is: {backpack_color}")'
+              execution2 = "Observation: The color of my backpack on the left table is: black"
+              summarization = 'Thought: Based on the observation, the color of my backpack on the left table is black.
+              I got the final answer to the question: "What color is my backpack on the left desk?"
+              Action: Final Answer
+              Action Input: black'
+              onclick="populateDemo(this);">
+          </div>
+
+          <div class="col-md-2 col-sm-2 col-xs-4">
+            <img id="scene3" src="assets/scene_view/scene3.jpg" width="100%"
+              situation = "Situation: I am sitting on the chair, and the door is just left of me."
+              question = "Question: Can I reach the &lt;span style=&quot;background-color: #D5E8D4;&quot;&gt;lamp&lt;/span&gt; from where I am sitting?"
+              think1 = "Thought: To determine if I can reach the lamp from where I am sitting, I need to consider the distance between the lamp and my current position. Since I am sitting on the chair and the door is just left of me, I will develop a program to calculate the distance between the lamp and my current position. If the distance is within a reachable range, then I can reach the lamp. Here are the steps:
+              Step 1: Filter the lamp from the objects in the scene. (Program)
+              Step 2: Calculate the distance between the lamp and my current position. (Program)
+              Step 3: Determine if the distance is within a reachable range. (Wait for the execution result before proceeding with further analysis)"
+              program1 = '# Get object set in the scene
+              object_set = scene()
+
+              # Filter the lamp from the objects in the scene
+              lamp_set = filter(object_set=object_set, category="lamp")
+
+              # Calculate the distance between the lamp and my current position
+              for lamp in lamp_set:
+              &nbsp;&nbsp;&nbsp;&nbsp;distance = query_attribute(object=lamp, attribute_type="distance")
+              &nbsp;&nbsp;&nbsp;&nbsp;print(f"Distance between the lamp and my current position: {distance} meters")'
+              execution1 = "Observation: Distance between the lamp and my current position: 2.16 meters"
+              rectify1 = ""
+              think2 = ""
+              program2 = ""
+              execution2 = ""
+              summarization = "Thought: Based on the observation, the distance between the lamp and my current position is 2.16 meters. Without further information about the reachability range, it is difficult to determine if I can reach the lamp from where I am sitting. However, considering the typical arm length of a person, it is unlikely that I can reach the lamp from my current position. Therefore, my final answer is:
+              Action: Final Answer
+              Action Input: No"
+              onclick="populateDemo(this);">
+          </div>
+
+          <div class="col-md-2 col-sm-2 col-xs-4">
+            <img id="scene4" src="assets/scene_view/scene4.jpg" width="100%"
+              situation = "I am drawing on the blackboard a diagram of a car while the &lt;span style=&quot;background-color: #D5E8D4;&quot;&gt;chair&lt;/span&gt; is on my right side within reach."
+              question = "Which direction should I go if I want to &lt;span style=&quot;background-color: #D5E8D4;&quot;&gt;sit down&lt;/span&gt;?"
+              think1 = "Thought: To determine which direction I should go if I want to sit down, I need to find the chair that is within my reach and determine its direction relative to my current position. I will develop a program to accomplish this using the following steps:
+              Step 1. Filter the chairs from the objects in the scene.
+              Step 2. Find the chair that is within my reach.
+              Step 3. Determine the direction of the chair relative to my current position."
+              program1 = '# Get object set in the scene
+              object_set = scene()
+
+              # Filter the chairs from the objects in the scene
+              chair_set = filter(object_set=object_set, category="chair")
+
+              # Find the chair that is within my reach
+              reachable_chair_set = relate_agent(object_set=chair_set, relation="close")
+
+              # Determine the direction of the chair relative to my current position
+              for chair in reachable_chair_set:
+              &nbsp;&nbsp;&nbsp;&nbsp;chair_direction = query_relation_agent(object=chair)
+              &nbsp;&nbsp;&nbsp;&nbsp;print(f"Direction of the chair relative to my current position: {chair_direction}")'
+              execution1 = "Observation: AssertionError: Calling relate_agent(object_set, relation) -> Set error! relation must be chosen from ['left', ..., 'within reach', ..., '12 o'clock'], not close."
+              rectify1 = "Program executing error. Check your program. Return your modified program in the format of:
+              Thought: ...
+              Action: Program
+              Action Input:
+              ```
+              YOUR MODIFIED PROGRAM
+              ```"
+              think2 = 'Thought: I need to modify the program to use the correct relation "within reach" instead of "close" when filtering the reachable chair. I will also modify the program to handle the case when there are no reachable chairs.'
+              program2 = '# Get object set in the scene
+              object_set = scene()
+
+              # Filter the chairs from the objects in the scene
+              chair_set = filter(object_set=object_set, category="chair")
+
+              # Find the chair that is within my reach
+              reachable_chair_set = relate_agent(object_set=chair_set, relation="within reach")
+
+              if len(reachable_chair_set) > 0:
+              &nbsp;&nbsp;&nbsp;&nbsp;# Determine the direction of the chair relative to my current position
+              &nbsp;&nbsp;&nbsp;&nbsp;for chair in reachable_chair_set:
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chair_direction = query_relation_agent(object=chair)
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print(f"Direction of the chair relative to my current position: {chair_direction}")
+              else:
+              &nbsp;&nbsp;&nbsp;&nbsp;print("There are no chairs within my reach to sit down.")'
+              execution2 = "Observation: Direction of the chair relative to my current position: ['right']"
+              summarization = "Thought: Based on the observation, the chair that is within my reach is located to my right. Therefore, I should go right to sit down.
+              Action: Final Answer
+              Action Input: right"
+              onclick="populateDemo(this);">
+          </div>
+
+          <div class="col-md-2 col-sm-2 col-xs-4">
+            <img id="scene5" src="assets/scene_view/scene5.jpg" width="100%"
+              situation = "I just entered the bathroom and there is a bench to my right."
+              question = "Which direction should I go if I want to &lt;span style=&quot;background-color: #D5E8D4;&quot;&gt;wash my hand&lt;/span&gt;?"
+              think1 = "Thought: To determine which direction I should go to wash my hands, I need to find the sink in the bathroom. I will develop a program to determine the direction of the sink using the following steps:
+              Step 1. Filter the sink from the objects in the scene. (Program)
+              Step 2. Determine the direction of the sink relative to my current position. (Program)
+              Step 3. Decide which direction I should go to reach the sink. (Wait for the execution result before proceeding with further analysis)"
+              program1 = '# Get object set in the scene
+              object_set = scene()
+
+              # Filter the sink from the objects in the scene
+              sink_set = filter(object_set=object_set, category="sink")
+
+              for sink in sink_set:
+              &nbsp;&nbsp;&nbsp;&nbsp;# Determine the direction of the sink relative to my current position
+              &nbsp;&nbsp;&nbsp;&nbsp;sink_direction = query_relation_agent(object=sink, candidate_relations=["left", "right", "front", "back"])
+              &nbsp;&nbsp;&nbsp;&nbsp;print(f"Direction of the sink relative to my current position: {sink_direction}")'
+              execution1 = "Observation: Direction of the sink relative to my current position: ['left']"
+              rectify1 = ""
+              think2 = ""
+              program2 = ""
+              execution2 = ""
+              summarization = 'Thought: Based on the observation, the sink is located to my left. Therefore, I should go left to wash my hands.
+              I got the final answer to the question: "Which direction should I go if I want to wash my hands?"
+              Action: Final Answer
+              Action Input: left'
+              onclick="populateDemo(this);">
+          </div>
+
+          <div class="col-md-2 col-sm-2 col-xs-4">
+            <img id="scene6" src="assets/scene_view/scene6.jpg" width="100%"
+              situation = "I am standing by the shelf picking up the blanket on top."
+              question = "Is the &lt;span style=&quot;background-color: yellow;&quot;&gt;couch behind me&lt;/span&gt; the same color as the &lt;span style=&quot;background-color: rgba(0, 0, 255, 0.2);&quot;&gt;couch to my 9 o'clock&lt;/span&gt;?"
+              think1 = "Thought: To determine if the couch behind me is the same color as the couch to my 9 o'clock, I need to find the couches behind me and to my 9 o'clock, and then query their colors to compare. I will develop a program to accomplish this using the following steps:
+              Step 1. Filter the couches from the objects in the scene. (Program)
+              Step 2. Find the couch behind me. (Program)
+              Step 3. Find the couch to my 9 o'clock. (Program)
+              Step 4. Determine if the colors of the couches behind me and to my 9 o'clock are the same. (Wait for the execution result before proceeding with further analysis)"
+              program1 = '# Get object set in the scene
+              object_set = scene()
+
+              # Filter the couches from the objects in the scene
+              couch_set = filter(object_set=object_set, category="couch")
+
+              # Find the couch behind me
+              couch_behind_set = relate_agent(object_set=couch_set, relation="behind")
+
+              # Find the couch to my 9 o&apos;clock
+              couch_9_oclock_set = relate_agent(object_set=couch_set, relation="9 o&apos;clock")
+
+              # Determine if the colors of the couches behind me and to my 9 o&apos;clock are the same
+              color_behind = query_attribute(object=couch_behind_set.pop(), attribute_type="color")
+              color_9_oclock = query_attribute(object=couch_9_oclock_set.pop(), attribute_type="color")
+
+              same_color = color_behind == color_9_oclock
+              print(f"The couch behind me {&apos;is&apos; if same_color else &apos;is not&apos;} the same color as the couch to my 9 o&apos;clock.")'
+              execution1 = "Observation: The couch behind me is the same color as the couch to my 9 o'clock."
+              rectify1 = ""
+              think2 = ""
+              program2 = ""
+              execution2 = ""
+              summarization = 'Thought: Based on the observation, the couch behind me is the same color as the couch to my 9 o&apos;clock.
+              I got the final answer to the question: "Is the couch behind me the same color as the couch to my 9 o&apos;clock?"
+              Action: Final Answer
+              Action Input: Yes'
+              onclick="populateDemo(this);">
+          </div>
+        </div>
+
+        <div class="row border rounded" style="padding-top:10px; padding-bottom:10px;">
+          <div class="col-md-7">
+            <!-- <div id="pose_loading" style="position: absolute; left: 26.55%; top: 51.1%;"></div> -->
+            <div id="pose_loading" style="position: absolute; left: 26.55%; top: 51.1%;"></div>
+            <canvas id="webgl_pose"></canvas>
+            <div><p id="situation" style="white-space: pre-line; font-size: 15px;"></p></div>
+            <div><p id="question" style="white-space: pre-line; font-size: 15px;">Click the image to select a scene for result visualization and drag to move your view around.</p></div>
+          </div>
+
+          <div class="col-md-5" style="transform: translate(-4.5px,0)">
+            <!-- <div><p id="situation" style="white-space: pre-line; font-size: 12px;"></p></div>
+            <div><p id="question" style="white-space: pre-line; font-size: 12px;">Click the image to select a scene for result visualization and drag to move your view around.</p></div> -->
+            <div><p id="think1" style="white-space: pre-line; font-size: 12px;"></p></div>
+            <div><p id="program1" style="white-space: pre-line; font-size: 12px;"></p></div>
+            <div><p id="execution1" style="white-space: pre-line; font-size: 12px;"></p></div>
+            <div><p id="rectify1" style="white-space: pre-line; font-size: 12px;"></p></div>
+            <div><p id="think2" style="white-space: pre-line; font-size: 12px;"></p></div>
+            <div><p id="program2" style="white-space: pre-line; font-size: 12px;"></p></div>
+            <div><p id="execution2" style="white-space: pre-line; font-size: 12px;"></p></div>
+            <div><p id="rectify2" style="white-space: pre-line; font-size: 12px;"></p></div>
+            <div><p id="summarization" style="white-space: pre-line; font-size: 12px;"></p></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!--/ Demo -->
+
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code class="language-bibtex">@article{qingrong2024llm-tpc,
+  title={Think-Program-reCtify: 3D Situated Reasoning with Large Language Models},
+  author={Qingrong He and Kejun Lin and Shizhe Chen and Anwen Hu and Qin Jin},
+  journal={arXiv preprint arXiv:2404.14705},
+  year={2024}
+}</code></pre>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+        <p>
+            This website is licensed under a <a rel="license"
+            href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+        </p>
+        <p>
+            Template borrowed from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a> and <a href="https://embodied-generalist.github.io/">LEO</a>.
+        </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+
+<!-- visualization code borrowed from SceneDiffuser -->
+<script type="module">
+
+  import * as THREE from 'three'
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+  import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js'
+
+  let canvas1 = document.querySelector('#webgl_pose')
+  let scene1 = new THREE.Scene()
+  let assetLoader1 = new GLTFLoader()
+  let model1
+
+  let camera1 = new THREE.PerspectiveCamera(45, 1.618 / 1.0, 0.1, 100)
+  camera1.position.set(5.2, 3.9, -3.9)
+  let grid1 = new THREE.GridHelper(30, 30)
+  scene1.add(camera1)
+  scene1.add(grid1)
+  for (let i = 0; i <= 1; i++) {
+    for (let k = 0; k <= 1; k++) {
+      let spotLight = new THREE.SpotLight(0xAAAAAA)
+      spotLight.position.set(50 * (i * 2 - 1), 100, 100 * (k * 2 - 1))
+      scene1.add(spotLight)
+    }
+  }
+
+  let controls1 = new OrbitControls(camera1, canvas1)
+  controls1.enableZoom = true
+  // controls2.enableDamping = true
+  controls1.object.position.set(camera1.position.x, camera1.position.y, camera1.position.z)
+  controls1.target = new THREE.Vector3(0, 0, 0)
+  controls1.update()
+
+  let renderer1 = new THREE.WebGLRenderer({
+      canvas: canvas1,
+      alpha: true,
+  })
+  renderer1.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  renderer1.outputEncoding = THREE.sRGBEncoding
+  renderer1.setAnimationLoop(() => {
+    renderer1.render(scene1, camera1)
+  });
+
+  const radioButtons = document.querySelectorAll('input[name="capability"]')
+  for (const radioButton of radioButtons) {
+    radioButton.addEventListener('change', (e) => {
+      var capability = radioButton.value;
+      console.log("capability", capability)
+    })
+  }
+  radioButtons[0].click()
+
+  // resize renderers
+  function resizeRenderers() {
+    let content_width = document.querySelector('#demo').offsetWidth
+    renderer1.setSize(content_width * 6.7 / 12, content_width / 1.618 * 6.7 / 12)
+  }
+  window.addEventListener('resize', () => {
+    resizeRenderers()
+  })
+  resizeRenderers()
+
+  window.model1 = model1;
+  window.scene1 = scene1;
+  window.assetLoader1 = assetLoader1;
+
+</script>
+
+
+</html>
