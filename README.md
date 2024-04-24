@@ -1,7 +1,8 @@
 # LLM-TPC
 Code for the paper "Think-Program-reCtify: 3D Situated Reasoning with Large Language Models"
-[[Project Page](https://qingrongh.github.io/LLM-TPC/)] [[Paper](https://github.com/QingrongH/LLM-TPC)]
-<img src="docs/static/images/LLM-TPC.png"/>
+
+[[Project Page](https://qingrongh.github.io/LLM-TPC/)] [[Paper](https://arxiv.org/abs/2404.14705)]
+<img src="docs/assets/LLM-TPC.png"/>
 
 ## Install
 ```Shell
@@ -75,3 +76,14 @@ python visualize_bbox.py
 - [ReferIt3D](https://github.com/referit3d/referit3d): we design APIs for spacial relation recognition based on ReferIt3D.
 - [OpenShape](https://github.com/Colin97/OpenShape_code): we design APIs for open-vocabulary object attribute classification based on OpenShape.
 - [ScanRefer](https://github.com/daveredrum/ScanRefer): code for visualization.
+
+
+## Citation:
+```
+@article{qingrong2024llm-tpc,
+  title={Think-Program-reCtify: 3D Situated Reasoning with Large Language Models},
+  author={Qingrong He and Kejun Lin and Shizhe Chen and Anwen Hu and Qin Jin},
+  journal={arXiv preprint arXiv:2404.14705},
+  year={2024}
+}
+```
