@@ -50,22 +50,19 @@ We use the [pointbert-vitg14-rgb](https://huggingface.co/OpenShape/openshape-poi
 Download `model.pt` from [here](https://huggingface.co/OpenShape/openshape-pointbert-vitg14-rgb/tree/main) and `open_clip_pytorch_model.bin` from [here](https://huggingface.co/laion/CLIP-ViT-bigG-14-laion2B-39B-b160k/tree/main). Put them under `data/openshape`.
 
 ## Inference
-TODO
 ```Shell
 cd scripts
-# Input your OPENAI_API_KEY in 'no_caption-openshape-gt_seg-gt_label/config.json'
-python example.py --agent no_caption-openshape-gt_seg-gt_label/config.json
+# Input your OPENAI_API_KEY in 'llm-tpc/config.json'
+python example.py --agent llm-tpc/config.json
 ```
 
 ## Evaluation
-TODO
 ```Shell
 cd scripts
-python eval.py --log_dir ../logs/test/no_caption-openshape-gt_seg-gt_label
+python eval.py --log_dir ../logs/test/llm-tpc
 ```
 
 ## Visualization
-TODO
 ```Shell
 cd src/dataset
 python visualize_bbox.py
@@ -78,7 +75,7 @@ python visualize_bbox.py
 - [ScanRefer](https://github.com/daveredrum/ScanRefer): code for visualization.
 
 
-## Citation:
+## Citation
 ```
 @article{qingrong2024llm-tpc,
   title={Think-Program-reCtify: 3D Situated Reasoning with Large Language Models},

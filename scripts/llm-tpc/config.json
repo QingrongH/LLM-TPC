@@ -1,0 +1,177 @@
+{
+    "config": {
+        "API_KEY": "<OPENAI_API_KEY>",
+        "PROXY": "1081",
+        "MAX_CHAT_HISTORY": "50",
+        "TOP_K": "1",
+        "scene_info": {
+            "meta_info": {
+                "qa_file": "../data/qa/SQA_{}.json",
+                "caption_file": "../data/ScanRefer_organized.json",
+                "scene_dir": "../data/scans",
+                "split": "test",
+                "label_map_file": "../data/scannetv2-labels.combined.tsv",
+                "object_pcd_path": "../../data/object_pcd"
+            },
+            "qa_info": {
+                "scene_id": "scene0702_00",
+                "question_id": "220602000017"
+            },
+            "object_pcd_setting": {
+                "seg_type": "GT",
+                "label_type": "GT"
+            },
+            "scene": ""
+        },
+        "openshape_config": {
+            "meta_info": {
+                "openshape_config_path": "../src/LLMTPC_executor/api/openshape/configs/train.yaml",
+                "openshape_model_path": "../data/openshape/model.pt",
+                "openclip_model_path": "../data/openshape/open_clip_pytorch_model.bin"
+            },
+            "attr_matcher": ""
+        },
+        "setting": {
+            "use_caption": false,
+            "use_openshape": true
+        }
+    },
+    "LLM_type": "OpenAI",
+    "LLM": {
+        "temperature": 0.3,
+        "model": "gpt-3.5-turbo-16k-0613"
+    },
+    "log_path": "../logs/test/llm-tpc",
+    "root": "start_state",
+    "finish_state_name": "end_state",
+    "final_state_name": "postprocessing_state",
+    "relations": {
+        "start_state": {
+            "0": "start_state",
+            "1": "query_state"
+        },
+        "query_state": {
+            "0": "query_state",
+            "1": "TPC_state"
+        },
+        "TPC_state": {
+            "0": "TPC_state",
+            "1": "postprocessing_state"
+        },
+        "postprocessing_state": {
+            "0": "postprocessing_state",
+            "1": "end_state"
+        }
+    },
+    "agents": {
+        "Embodied Agent": {
+            "style": "professional",
+            "roles": {
+                "start_state": "Exemplar",
+                "query_state": "Questioner",
+                "TPC_state": "Coder",
+                "postprocessing_state": "Summarizer"
+            }
+        }
+    },
+    "states": {
+        "start_state": {
+            "roles": [
+                "Exemplar"
+            ],
+            "controller": {
+                "controller_type": "order",
+                "max_chat_nums": 1
+            },
+            "begin_role": "Exemplar",
+            "begin_query": "You are a smart embodied agent. Use your coding and common sense reasoning skills to solve a question answering task with interleaving Thought, Action, Observation steps. Given your situation and question, use the following format to solve the task:\nThought: Answer the question by reasoning about scene and your situation. If you need further information about the objects in the scene (e.g. spatial relationship), generate a plan step by step and implement it in a program.\nAction: The action to take, should be one of [Final Answer, Program].\nAction Input:\n(1) For Final Answer, return the answer to the question with NO MORE THAN 3 words.\n(2) For Program, generate a Python program according to your thought to help you understand the scene.\n\nValid format for Final Answer\n-----------------------------\nThought: Your reasoning process for the final answer. \nAction: Final Answer\nAction Input: Your final answer with NO MORE THAN 3 words. (Use your common sense reasoning skills to infer missing information and give a specific final answer.)\n\nValid format for Program\n------------------------\nThought: Your plan for further information about the objects in the scene.\nAction: Program\nAction Input:\n```Python\nYOUR PROGRAM (Use ```print(variable_value_you_want_to_know)``` to display the value of a variable.)\n```\n\nWhen generating a program, each object is represented as an instance of ObjectAttribute and you can use the following functions:\n```Python\nclass ObjectAttribute:\n    category: str # category of the object\n    xyz: List[float] # center coordinates of the object\n\nscene() -> Set[ObjectAttribute]:\n    \"\"\"\n    Returns a set of objects in the scene.\n    \"\"\"\n\nfilter(object_set: Set[ObjectAttribute], category: str) -> Set[ObjectAttribute]:\n    \"\"\"\n    Returns a set of objects whose category is `category`.\n\n    Examples\n    --------\n    >>> # Get object set in the scene\n    >>> object_set = scene()\n    >>> # Filter all the tables\n    >>> table_set = filter(object_set=object_set, category=\"table\")\n    \"\"\"\n\nrelate_agent(object_set: Set[ObjectAttribute], relation: str) -> Set:\n    \"\"\"\n    Returns a set of objects that are related to the agent(you) by the relation.\n\n    Examples\n    --------\n    >>> # Find the table on my left\n    >>> table_left_set = relate_agent(object_set=table_set, relation=\"left\")\n    \"\"\"    \n\nrelate(object_set: Set[ObjectAttribute], reference_object: ObjectAttribute, relation: str) -> Set:\n    \"\"\"\n    Returns a set of objects that are related to the reference_object by the relation.\n\n    Examples\n    --------\n    >>> # Find objects on top of the table on my left\n    >>> objects_on_table = set()\n    >>> for table in table_left_set:\n    >>>     objects_on_table.update(relate(object_set=object_set, reference_object=table, relation=\"on\"))\n\n    >>> # Determine what objects are on top of the table\n    >>> objects_on_table_category = []\n    >>> for obj in objects_on_table:\n    >>>     objects_on_table_category.append(obj.category)\n    >>> print(f\"Objects on top of the table on my left: {objects_on_table_category}\")\n    Objects on top of the table on my left: ['book', 'tray']\n    \"\"\"\n\nquery_relation_agent(object: ObjectAttribute, candidate_relations: Optional[List[str]]=[\"left\", \"right\", \"front\", \"back\", \"o'clock\"]) -> List:\n    \"\"\"\n    Returns a list of allcentric relations between the object and the agent(you).\n    If `candidate_relations` is provided, only relations in the `candidate_relations` list will be returned.\n\n    Examples\n    --------\n    >>> # Decide which direction I should go to reach the table\n    >>> direction = query_relation_agent(object=table)\n    >>> print(f\"Direction of the table relative to my current position: {direction}\")\n    >>> print(f\"I should go {' '.join(direction)} to reach the table.\")\n    Direction of the table relative to my current position: ['left', 'back']\n    I should go left back to reach the table.\n\n    >>> # Decide whether the table is in front of me or behind\n    >>> direction = query_relation_agent(object=table, candidate_relations=[\"front\", \"behind\"])\n    >>> print(f\"Direction of the table relative to my current position: {' '.join(direction)}\")\n    Direction of the table relative to my current position: behind\n    \"\"\"\n\nquery_relation(object: ObjectAttribute, reference_object: ObjectAttribute, candidate_relations: Optional[List[str]]=[\"left\", \"right\", \"front\", \"back\"]) -> List:\n    \"\"\"\n    Returns a list of allcentric relations between the object and the reference_object.\n    If `candidate_relations` is provided, only relations in the `candidate_relations` list will be returned.\n\n    Examples\n    --------\n    >>> relation = query_relation(object=chair, reference_object=table)\n    >>> print(f\"The chair is in the direction of {' '.join(relation)} to the table\")\n    The chair is in the direction of left front to the table\n\n    >>> relation = query_relation(object=chair, reference_object=table, candidate_relations=[\"left\", \"right\"])\n    >>> print(f\"The chair is on the {' '.join(relation)} of the table\")\n    The chair is on the left of the table\n    \"\"\"\n\nquery_attribute(object: ObjectAttribute, attribute_type: str, candidate_attribute_values: Optional[List[str]]) -> Union[List[float], float, str]:\n    \"\"\"\n    Returns the attribute of the object.\n    `attribute_type` must be chosen from the following list: [\"lwh\", \"distance\", \"color\", \"shape\", \"material\"].\n    If `candidate_attribute_values` is provided, only values in the `candidate_attribute_values` list will be returned.\n\n    Examples\n    --------\n    >>> lwh = query_attribute(object=object, attribute_type=\"lwh\") # unit: meter. length, width, height of the object bounding box (unit: meter). Can be used to compute the length(lwh[0]), width(lwh[1]), height(lwh[2]), area(lwh[0]*lwh[1]) and volume(lwh[0]*lwh[1]*lwh[2]) of the object. Helpful for deciding the size of the object.\n    >>> print(lwh)\n    [0.68883693 0.29695976 0.17185348]\n\n    >>> distance = query_attribute(object=object, attribute_type=\"distance\") # unit: meter. Helpful for getting the distance of an object from the agent(you). Can be used to compare which object is closer or farther to the agent(you).\n    >>> print(distance)\n    2.3456789\n\n    >>> # Determine whether the color of the object is brown, black or red\n    >>> color = query_attribute(object=object, attribute_type=\"color\", candidate_attribute_values=[\"brown\", \"black\", \"red\"])\n    >>> print(color)\n    brown\n\n    >>> # Determine whether the shape of the object is round, square or rectangular\n    >>> shape = query_attribute(object=object, attribute_type=\"shape\", candidate_attribute_values=[\"round\", \"square\", \"rectangular\"])\n    >>> print(shape)\n    rectangular\n\n    >>> # Determine whether the material of the object is wood or metal\n    >>> material = query_attribute(object=object, attribute_type=\"material\", candidate_attribute_values=[\"wood\", \"metal\"])\n    >>> print(material)\n    wood\n    \"\"\"\n\nquery_state(object: ObjectAttribute, candidate_states: List[str]) -> str:\n    \"\"\"\n    Returns the state of the object.\n\n    Examples\n    --------\n    >>> state = query_state(object=object, candidate_states=[\"neat\", \"messy\"])\n    >>> print(state)\n    neat\n    \"\"\"\n```\n\n**Tips**\n1. ALWAYS adhere to the valid output format.\n2. Pass the correct parameter types to the function.\n3. Try to infer missing information using your commonsense reasoning skills.\n4. Use ```print(variable_value_you_want_to_know)``` to display the value of a variable. Otherwise, you would get nothing from the observation.\n5. Consider all the objects in a set, instead of querying only one object's attribute.\n6. Return the Final Answer with NO MORE THAN 3 words.\n\nHere are some examples.",
+            "agent_states": {
+                "Exemplar": {
+                    "LLM_type": "OpenAI",
+                    "LLM": {
+                        "temperature": 0.3,
+                        "model": "gpt-3.5-turbo-16k-0613"
+                    },
+                    "few_shot_example": {
+                        "few_shot_example_path": "llm-tpc/few_shot_example.json"
+                    }
+                }
+            }
+        },
+        "query_state": {
+            "roles": [
+                "Questioner"
+            ],
+            "controller": {
+                "controller_type": "order",
+                "max_chat_nums": 1
+            },
+            "begin_role": "Questioner",
+            "begin_query": "Pay attention to the **Tips**!!! Start!",
+            "agent_states": {
+                "Questioner": {
+                    "LLM_type": "OpenAI",
+                    "LLM": {
+                        "temperature": 0.3,
+                        "model": "gpt-3.5-turbo-16k-0613"
+                    },
+                    "query": {
+                        "use_context": false,
+                        "content": "I am in a room. Looking around me, I see some objects: {}.\nMy situation: {}\nQuestion: {}"
+                    }
+                }
+            }
+        },
+        "TPC_state": {
+            "roles": [
+                "Coder"
+            ],
+            "controller": {
+                "controller_type": "order",
+                "max_chat_nums": 6
+            },
+            "begin_query": "",
+            "agent_states": {
+                "Coder": {
+                    "LLM_type": "OpenAI",
+                    "LLM": {
+                        "temperature": 0.3,
+                        "model": "gpt-3.5-turbo-16k-0613"
+                    },
+                    "debug_message": {
+                        "system_role": "user",
+                        "content": "Program executing error. Check your program. {}Return your modified program in the format of:\nThought: ...\nAction: Program\nAction Input:\n```Python\nYOUR MODIFIED PROGRAM\n```",
+                        "function": "Pay attention to the correct usage of functions:\n```Python\nscene() -> Set[ObjectAttribute]:\n    Returns a set of objects in the scene.\n\nrelate_agent(object_set: Set[ObjectAttribute], relation: str) -> Set[ObjectAttribute]:\n    Returns a set of objects that are related to the agent(you) by the relation.\n\nrelate(object_set: Set[ObjectAttribute], reference_object: ObjectAttribute, relation: str) -> Set[ObjectAttribute]:\n    Returns a set of objects that are related to the reference_object by the relation.\n\nquery_relation_agent(object: ObjectAttribute, candidate_relations: Optional[List[str]]=[\"left\", \"right\", \"front\", \"back\", \"o'clock\"]) -> List[str]:\n    Returns a list of allcentric relations between the object and the agent(you).\n\nquery_relation(object: ObjectAttribute, reference_object: ObjectAttribute, candidate_relations: Optional[List[str]]=[\"left\", \"right\", \"front\", \"back\"]) -> List[str]:\n    Returns a list of allcentric relations between the object and the reference_object.\n\nquery_attribute(object: ObjectAttribute, attribute_type: str, candidate_attribute_values: Optional[List[str]]) -> Union[List[float], float, str]:\n    Returns the attribute of the object.\n\nquery_state(object: ObjectAttribute, candidate_states: List[str]) -> str:\n    Returns the state of the object.\n```\n"
+                    },
+                    "parse_message": {
+                        "system_role": "user",
+                        "content": "Response parsing error. {}Check your response and return your response in the format of:\nThought: ...\nAction: The action to take, should be one of [Final Answer, Program].\nAction Input: ...\n\nValid format for Final Answer\n-----------------------------\nThought: Your reasoning process for the final answer. \nAction: Final Answer\nAction Input: Your final answer with NO MORE THAN 3 words. (Use your common sense reasoning skills to infer missing information and give a specific final answer.)\n\nValid format for Program\n------------------------\nThought: Your plan for further information about the objects in the scene.\nAction: Program\nAction Input:\n```Python\nYOUR PROGRAM (Use ```print(variable_value_you_want_to_know)``` to display the value of a variable.)\n```\n"
+                    }
+                }
+            }
+        },
+        "postprocessing_state": {
+            "roles": [
+                "Summarizer"
+            ],
+            "controller": {
+                "controller_type": "order",
+                "max_chat_nums": 2
+            },
+            "begin_role": "Summarizer",
+            "begin_query": "You have reached the maximum number of chats. Anyway, still try your best to give a final answer in the format of:\nThought: Reasoning about the objects in the scene, your situation and question, you can still give a final answer. Use your common sense reasoning skills to infer missing information and give a specific final answer.\nAction: Final Answer\nAction Input: your final answer with NO MORE THAN 3 words.",
+            "agent_states": {
+                "Summarizer": {
+                    "LLM_type": "OpenAI",
+                    "LLM": {
+                        "temperature": 0.3,
+                        "model": "gpt-3.5-turbo-16k-0613"
+                    }
+                }
+            }
+        },
+        "end_state": {
+            "agent_states": {}
+        }
+    }
+}
